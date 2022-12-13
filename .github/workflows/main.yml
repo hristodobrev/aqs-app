@@ -29,10 +29,12 @@ jobs:
       # Setup virtual env, install dependencies
       - name: Create new virtual env and activate it
         run: |
+          echo "Building project..."
           python3 -m venv flask-env
           source flask-env/bin/activate
           python3 -m pip install -r src/requirements.txt
           python3 -m pip install gunicorn
+          echo "Project built successfully!"
   deploy:
     runs-on: self-hosted
     needs: build
@@ -45,7 +47,9 @@ jobs:
       # Run gunicorn server
       - name: Run gunicorn
         run: |
+          echo "Deploying project..."
           source flask-env/bin/activate
           RUNNER_TRACKING_ID=""
           cd src
           gunicorn -w 1 -b 0.0.0.0:4000 app:app -D --log-file=../gunicorn.log
+          echo "Project has been deployed successfully!"
