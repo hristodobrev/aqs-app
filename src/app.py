@@ -47,7 +47,7 @@ def projects():
 @app.route('/confidential/')
 def confidential():
     abort(401)
-    return 'Some sensitive data'
+    return 'Some sensitive data. Added some change!'
 
 @app.route('/data')
 def get_data():
