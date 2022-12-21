@@ -1,0 +1,133 @@
+<html>
+    <head>
+        <title>AQS Server - System Information</title>
+	<meta http-equiv="refresh" content="145" >
+        <script src="https://cdn.jsdelivr.net/npm/chart.js@3.9.1/dist/chart.min.js"></script>
+	
+        <style>
+	    section {
+		max-width: 800px;
+                margin: 0 auto;
+	    }
+
+            table {
+                border-collapse: collapse;
+		width: 100%;
+		margin-top: 10px;
+            }
+            
+            td {
+                border: 1px solid #d3d3d3;
+                padding: 3px 7px;
+            }
+
+            th {
+                border: 1px solid #d3d3d3;
+                padding: 3px 7px;
+                font-weight: bold;
+            }
+
+            .chart-container {
+                border: 1px solid #d3d3d3;
+            }
+        </style>
+    </head>
+    <body>
+	<section>
+        <h4>Weather Information</h4>
+	<p>Last Updated: {{ date }}</p>
+        <div class="chart-container">
+            <canvas id="pmChart" width="40" height="20"></canvas>
+        </div>
+        <table>
+            <thead>
+                <th>P2.5</th>
+                <th>P10</th>
+                <th>Temperature</th>
+                <th>Pressure</th>
+                <th>Humidity</th>
+                <th>Signal</th>
+                <th>Date</th>
+            </thead>
+            <tbody>
+                {% for row in rows %}
+                    <tr>
+                        <td {% if row["p2"] > 25 %}style='color:red'{% elif row["p2"] > 12 %}style='color:orange'{%endif%}>{{ "%.2f" | format(row["p2"]) }} µg/m³</td>
+                        <td {% if row["p1"] > 40 %}style='color:red'{% elif row["p1"] > 20 %}style='color:orange'{%endif%}>{{ "%.2f" | format(row["p1"]) }} µg/m³</td>
+                        <td {% if row["temperature"] < 15 %}style='color:blue'{% elif row["temperature"] > 30 %}style='color:red'{%endif%}>{{ "%.2f" | format(row["temperature"]) }} °C</td>
+                        <td>{{ "%.2f" | format(row["pressure"] / 100) }} hPa</td>
+			<td>{{ "-" if row["humidity"] == 'nan' else "%.2f" | format(row["humidity"]) }} %</td>
+			<td>{{ row["signal"] }} %</td>
+                        <td>{{ row["date"] }}</td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        <script>
+            const ctx = document.getElementById('pmChart').getContext('2d');
+            const myChart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: [
+                        {% for row in rows[::-1] %}
+                            "{{ row['date']|format_datetime('%H:%M') }}",
+                        {% endfor %}
+                    ],
+                    datasets: [{
+                        label: 'P2.5',
+			pointBackgroundColor: function(context) {
+				const val = context.dataset.data[context.dataIndex];
+				return val > 25 ? '#c04b4b' : (val > 13 ? '#d9d655' : '#4bc088');
+			},
+			segment: {
+                                borderColor: function(context) {
+                                        const val = context.p1.raw;
+                                        return val > 25 ? '#c04b4b' : (val > 13 ? '#d9d655' : '#4bc088');
+                                }
+                        },
+			borderWidth: 1,
+			fill: true,
+                        backgroundColor: 'rgba(100, 120, 80, 0.1)',
+			data: [
+                        {% for row in rows[::-1] %}
+                            {{ row['p2'] }},
+                        {% endfor %}
+                        ]
+                    },{
+                        label: 'P10',
+			pointBackgroundColor: function(context) {
+                                const val = context.dataset.data[context.dataIndex];
+                                return val > 40 ? '#c04b4b' : (val > 20 ? '#d9d655' : '#4bc088');
+                        },
+                        segment: {
+				borderColor: function(context) {
+					const val = context.p1.raw;
+	                                return val > 40 ? '#c04b4b' : (val > 20 ? '#d9d655' : '#4bc088');
+				}
+			},
+			borderWidth: 1,
+			fill: true,
+			backgroundColor: 'rgba(60, 200, 80, 0.1)',
+			data: [
+                        {% for row in rows[::-1] %}
+                            {{ row['p1'] }},
+                        {% endfor %}
+                        ]
+                    }],
+                },
+		options: {
+			interaction: {
+				intersect: false
+			},
+			radius: 0,
+			scales: {
+				y: {
+					suggestedMax: 100
+				}
+			}
+		}
+            });
+        </script>
+	</section>
+    </body>
+</html>

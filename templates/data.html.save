@@ -1,0 +1,43 @@
+<html>
+    <head>
+        <title>AQS Server - System Information</title>
+        <style>
+            table {
+                border-collapse: collapse;
+            }
+            
+            td {
+                border: 1px solid black;
+                padding: 3px 7px;
+            }
+        </style>
+    </head>
+    <body>
+        <h4>System Information</h4>
+
+        <table>
+            <thead>
+                <td>P2.5</td>
+                <td>P10</td>
+                <td>Temperature</td>
+                <td>Pressure</td>
+                <td>Humidity</td>
+                <td>Signal</td>
+                <td>Date</td>
+            </thead>
+            <tbody>
+                {% for row in rows %}
+                    <tr>
+                        <td>{{ row["p2"] }} µg/m³</td>
+                        <td>{{ row["p1"] }} µg/m³</td>
+                        <td>{{ row["temperature"] }} °C</td>
+                        <td>{{ row["pressure"] / 100) }} hPa</td>
+                        <td>{{ "$.2f" | format(row["humidity"]) }} %</td>
+                        <td>{{ row["signal"] }} %</td>
+                        <td>{{ row["date"] }}</td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </body>
+</html>
