@@ -1,0 +1,21 @@
+<html>
+
+<head>
+    <title>AQS Server - System Information</title>
+    <meta http-equiv="refresh" content="145">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@3.9.1/dist/chart.min.js"></script>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+
+<body>
+    <nav>
+        <ul>
+            <li><a href="{{ url_for('home') }}">Home</a></li>
+            <li><a href="{{ url_for('getData') }}">Data</a></li>
+        </ul>
+    </nav>
+
+    {% block content %}{% endblock %}
+</body>
+
+</html>

@@ -1,0 +1,50 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<section>
+    <h4>Weather Information</h4>
+    <p>Last Updated: {{ date }}</p>
+    <div class="chart-container">
+        <canvas id="pmChart" width="40" height="20"></canvas>
+    </div>
+    <script>
+        const ctx = document.getElementById('pmChart').getContext('2d');
+        const rowsJson = JSON.parse({{data|tojson}});
+        console.log(rowsJson);
+        const myChart = new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: [...rowsJson.map(r => r.time)],
+                datasets: [{
+                    label: 'Temperature',
+                    pointBackgroundColor: function (context) {
+                        const val = context.dataset.data[context.dataIndex];
+                        return val > 30 ? '#c04b4b' : (val > 15 ? '#555' : '#4b88c0');
+                    },
+                    segment: {
+                        borderColor: function (context) {
+                            const val = context.p1.raw;
+                            return val > 30 ? '#c04b4b' : (val > 15 ? '#555' : '#4b88c0');
+                        }
+                    },
+                    borderWidth: 1,
+                    fill: true,
+                    backgroundColor: 'rgba(100, 100, 100, 0.1)',
+                    data: [...rowsJson.map(r => r.avg_temp)]
+                }],
+                options: {
+                    interaction: {
+                        intersect: false
+                    },
+                    radius: 0,
+                    scales: {
+                        y: {
+                            suggestedMax: 100
+                        }
+                    }
+                }
+            }
+        });
+    </script>
+</section>
+{% endblock %}

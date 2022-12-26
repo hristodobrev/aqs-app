@@ -15,10 +15,10 @@ def average():
     conn = sqlite3.connect('aqs-data.db')
     conn.row_factory = sqlite3.Row
     cur = conn.cursor()
-    cur.execute("SELECT strftime('%Y-%m-%d %H', date) as time, AVG(temperature) as avg_temp FROM data GROUP BY time ORDER BY date DESC LIMIT 24")
+    cur.execute("SELECT strftime('%H', date) as time, AVG(temperature) as avg_temp FROM data GROUP BY time ORDER BY date DESC LIMIT 24")
     rows = cur.fetchall()
 
-    return json.dumps([dict(row) for row in rows])
+    return render_template('average.html', data=json.dumps([dict(row) for row in rows]))
 
 @app.route("/current", methods=['GET'])
 def getCurrentData():
@@ -50,7 +50,7 @@ def getData(limit=50):
     cur.execute("SELECT p1, p2, temperature, pressure, humidity, (100 + signal) * 2 as signal, datetime(date, 'localtime') as date FROM data ORDER BY date desc LIMIT ?", (limit,))
     rows = cur.fetchall()
 
-    return render_template('data.html', rows=rows, date=datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S'), nan=float('nan'))
+    return render_template('data.html', rowsJson=json.dumps([dict(row) for row in rows[::-1]]), rows=rows, date=datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S'), nan=float('nan'))
 
 @app.route("/data", methods=['POST'])
 def saveData():
@@ -72,6 +72,10 @@ def saveData():
 
     return "Success"
 
+@app.route("/home", methods=['GET'])
+def home():
+    return render_template('home.html')
+
+app.add_url_rule('/', endpoint='home')
+
 app.run(debug=True, host='0.0.0.0', port='5001')
-
-
