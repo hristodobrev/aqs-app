@@ -1,7 +1,7 @@
 import os
 
 from flask import Flask
-from . import db, auth
+from . import db, auth, home
 
 
 def create_app(test_config=None):
@@ -25,9 +25,6 @@ def create_app(test_config=None):
 
     app.register_blueprint(auth.bp)
     
-
-    @app.route('/')
-    def test():
-        return 'TEST!'
+    app.register_blueprint(home.bp)
 
     return app
