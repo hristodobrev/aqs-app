@@ -1,0 +1,18 @@
+CREATE TABLE IF NOT EXISTS data (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    p1 REAL,
+    p2 REAL,
+    temperature REAL,
+    pressure REAL,
+    humidity REAL,
+    signal INT,
+    created DATETIME DEFAULT CURRENT_TIMESTAMP
+)
+
+CREATE TABLE IF NOT EXISTS user (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    username TEXT UNIQUE NOT NULL,
+    password TEXT NOT NULL,
+    full_name TEXT NOT NULL,
+    created DATETIME DEFAULT CURRENT_TIMESTAMP 
+)

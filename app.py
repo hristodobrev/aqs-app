@@ -5,6 +5,10 @@ import datetime
 
 app = Flask(__name__)
 
+
+# TODO: date column should be renamed to created!
+
+
 @app.template_filter()
 def format_datetime(value, format='%Y-%m-%d'):
     value = datetime.datetime.strptime(value, '%Y-%m-%d %H:%M:%S')
@@ -12,20 +16,26 @@ def format_datetime(value, format='%Y-%m-%d'):
 
 @app.route("/average", methods=['GET'])
 def average():
-    conn = sqlite3.connect('aqs-data.db')
-    conn.row_factory = sqlite3.Row
-    cur = conn.cursor()
-    cur.execute("SELECT strftime('%H', date) as time, AVG(temperature) as avg_temp FROM data GROUP BY time ORDER BY date DESC LIMIT 24")
+    db = sqlite3.connect('aqs-data.db')
+    db.row_factory = sqlite3.Row
+    cur = db.cursor()
+    cur.execute(
+        "SELECT strftime('%H', date) as time, AVG(temperature) as avg_temp"
+        " FROM data GROUP BY time ORDER BY date DESC LIMIT 24"
+    )
     rows = cur.fetchall()
 
     return render_template('average.html', data=json.dumps([dict(row) for row in rows]))
 
 @app.route("/current", methods=['GET'])
 def getCurrentData():
-    conn = sqlite3.connect('aqs-data.db')
-    conn.row_factory = sqlite3.Row
-    cur = conn.cursor()
-    cur.execute("SELECT p1, p2, temperature, pressure, humidity, (100 + signal) * 2 as signal, datetime(date, 'localtime') as date FROM data ORDER BY date desc LIMIT 1")
+    db = sqlite3.connect('aqs-data.db')
+    db.row_factory = sqlite3.Row
+    cur = db.cursor()
+    cur.execute(
+        "SELECT p1, p2, temperature, pressure, humidity, (100 + signal) * 2 as signal, datetime(date, 'localtime') as date"
+        " FROM data ORDER BY date desc LIMIT 1"
+    )
     row = cur.fetchone()
 
     result = {
@@ -43,32 +53,45 @@ def getCurrentData():
 @app.route("/data/<limit>", methods=['GET'])
 @app.route("/data", methods=['GET'])
 def getData(limit=50):
-    conn = sqlite3.connect('aqs-data.db')
-    conn.execute('CREATE TABLE IF NOT EXISTS data (p1 REAL, p2 REAL, temperature REAL, pressure REAL, humidity REAL, signal INT, date DATETIME DEFAULT CURRENT_TIMESTAMP)')
-    conn.row_factory = sqlite3.Row
-    cur = conn.cursor()
-    cur.execute("SELECT p1, p2, temperature, pressure, humidity, (100 + signal) * 2 as signal, datetime(date, 'localtime') as date FROM data ORDER BY date desc LIMIT ?", (limit,))
+    db = sqlite3.connect('aqs-data.db')
+    db.row_factory = sqlite3.Row
+    cur = db.cursor()
+    cur.execute(
+        "SELECT p1, p2, temperature, pressure, humidity, (100 + signal) * 2 as signal,"
+        " datetime(date, 'localtime') as date FROM data ORDER BY date desc LIMIT ?",
+        (limit,)
+    )
     rows = cur.fetchall()
 
-    return render_template('data.html', rowsJson=json.dumps([dict(row) for row in rows[::-1]]), rows=rows, date=datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S'), nan=float('nan'))
+    return render_template(
+        'data.html',
+        rowsJson=json.dumps([dict(row) for row in rows[::-1]]),
+        rows=rows,
+        date=datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S'),
+        nan=float('nan')
+    )
 
 @app.route("/data", methods=['POST'])
 def saveData():
-    conn = sqlite3.connect('aqs-data.db')
-    conn.execute('CREATE TABLE IF NOT EXISTS data (p1 REAL, p2 REAL, temperature REAL, pressure REAL, humidity REAL, signal INT, date DATETIME DEFAULT CURRENT_TIMESTAMP)')
-
+    
     data = request.get_json(force=True)
     valuesData = data['sensordatavalues']
     dictValues = {}
     for value in valuesData:
         dictValues[value["value_type"]] = value["value"]
 
-    conn.execute('CREATE TABLE IF NOT EXISTS data (p1 REAL, p2 REAL, temperature REAL, pressure REAL, humidity REAL, signal INT, date DATETIME DEFAULT CURRENT_TIMESTAMP)')
-    print(dictValues)
-    cur = conn.cursor()
-    cur.execute('INSERT INTO data (p1, p2, temperature, pressure, humidity, signal) VALUES (?, ?, ?, ?, ?, ?)', (dictValues['SDS_P1'], dictValues['SDS_P2'], dictValues['BME280_temperature'], dictValues['BME280_pressure'], dictValues['BME280_humidity'], dictValues['signal']))
-    conn.commit()
-    conn.close()
+    db = sqlite3.connect('aqs-data.db')
+    cur = db.cursor()
+    cur.execute(
+        "INSERT INTO data (p1, p2, temperature, pressure, humidity, signal)"
+        " VALUES (?, ?, ?, ?, ?, ?)",
+        (
+            dictValues['SDS_P1'], dictValues['SDS_P2'], dictValues['BME280_temperature'], 
+            dictValues['BME280_pressure'], dictValues['BME280_humidity'], dictValues['signal']
+        )
+    )
+    db.commit()
+    db.close()
 
     return "Success"
 
